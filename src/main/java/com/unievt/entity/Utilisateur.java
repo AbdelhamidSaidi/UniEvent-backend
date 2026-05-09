@@ -40,8 +40,7 @@ public class Utilisateur {
     private String telephone;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RoleEnum role;
+    private RoleEnum role; // nullable: only set for users with admin-style permissions
 
     @Column(nullable = false)
     private Boolean actif = true;

@@ -77,12 +77,16 @@ class SafaaModulesIntegrationTests {
 
     @BeforeEach
     void setUp() {
+        // Note (Strike, refactor): RoleEnum.ETUDIANT and RoleEnum.PRESIDENT_CLUB were
+        // removed because they were identity facts, not permission roles. "Étudiant"
+        // is now derived from the etudiant table; "club president" from Club.president
+        // FK. The role field is nullable; only ADMIN/DOYEN/RESPONSABLE_EVENEMENTS remain.
         etudiant = utilisateurRepository.save(Utilisateur.builder()
                 .nom("Etudiant")
                 .prenom("One")
                 .email("safaa.etudiant@unievt.ma")
                 .motDePasse("pass")
-                .role(RoleEnum.ETUDIANT)
+                // role left null — étudiants don't carry a permission role by default
                 .actif(true)
                 .build());
 
@@ -91,7 +95,7 @@ class SafaaModulesIntegrationTests {
                 .prenom("One")
                 .email("safaa.demandeur@unievt.ma")
                 .motDePasse("pass")
-                .role(RoleEnum.PRESIDENT_CLUB)
+                .role(RoleEnum.RESPONSABLE_EVENEMENTS) // closest surviving role for an event organiser
                 .actif(true)
                 .build());
 

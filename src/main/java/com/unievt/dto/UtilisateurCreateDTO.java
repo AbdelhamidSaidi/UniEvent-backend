@@ -3,7 +3,6 @@ package com.unievt.dto;
 import com.unievt.enums.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -29,6 +28,7 @@ public class UtilisateurCreateDTO {
     private String photo;
     private String telephone;
 
-    @NotNull(message = "Le rôle est obligatoire")
+    // Optional: only set for users who carry admin-style permissions
+    // (ADMIN, DOYEN, RESPONSABLE_EVENEMENTS). Regular users have null role.
     private RoleEnum role;
 }

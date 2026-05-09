@@ -1,9 +1,7 @@
 package com.unievt.dto;
 
-import com.unievt.enums.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -32,6 +30,6 @@ public class EtudiantCreateDTO {
     private Integer anneeEtude;
     private String cin;
 
-    @NotNull(message = "Le rôle est obligatoire")
-    private RoleEnum role;
+    // No role here. Étudiant identity comes from the etudiant table itself.
+    // If an étudiant later needs admin permissions, use PATCH /utilisateurs/{id}/role.
 }

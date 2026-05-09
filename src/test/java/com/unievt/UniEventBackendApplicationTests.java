@@ -59,27 +59,30 @@ class UniEventBackendApplicationTests {
                 .email("doyen@unievt.ma").motDePasse("pass")
                 .role(RoleEnum.DOYEN).actif(true).build());
 
+        // "president" here is the club's président — modeled by the Club.president FK,
+        // not a permission role. Role is therefore null for this user.
         president = utilisateurRepository.save(Utilisateur.builder()
                 .nom("Hassoub").prenom("Strike")
                 .email("strike@unievt.ma").motDePasse("pass")
-                .role(RoleEnum.PRESIDENT_CLUB).actif(true).build());
+                .actif(true).build());
 
         responsable = utilisateurRepository.save(Utilisateur.builder()
                 .nom("Cherkaoui").prenom("Nadia")
                 .email("nadia@unievt.ma").motDePasse("pass")
                 .role(RoleEnum.RESPONSABLE_EVENEMENTS).actif(true).build());
 
-        // Students
+        // Students — étudiant identity comes from the etudiant table itself,
+        // so no permission role is set.
         etudiant1 = etudiantRepository.save(Etudiant.builder()
                 .nom("Alaoui").prenom("Fatima")
                 .email("fatima@unievt.ma").motDePasse("pass")
-                .role(RoleEnum.ETUDIANT).actif(true)
+                .actif(true)
                 .filiere("Génie Informatique").anneeEtude(2).cin("AB111111").build());
 
         etudiant2 = etudiantRepository.save(Etudiant.builder()
                 .nom("Ziani").prenom("Mehdi")
                 .email("mehdi@unievt.ma").motDePasse("pass")
-                .role(RoleEnum.ETUDIANT).actif(true)
+                .actif(true)
                 .filiere("Génie Civil").anneeEtude(3).cin("CD222222").build());
 
         // Club
@@ -119,9 +122,10 @@ class UniEventBackendApplicationTests {
     @Test
     void testAllRolesSaved() {
         assertEquals(RoleEnum.DOYEN, doyen.getRole());
-        assertEquals(RoleEnum.PRESIDENT_CLUB, president.getRole());
+        // "president" here is identified by the Club.president FK, not by a role.
+        assertNull(president.getRole());
         assertEquals(RoleEnum.RESPONSABLE_EVENEMENTS, responsable.getRole());
-        System.out.println("✅ All roles saved correctly");
+        System.out.println(" All roles saved correctly");
     }
 
     @Test
@@ -129,20 +133,20 @@ class UniEventBackendApplicationTests {
         Optional<Utilisateur> found = utilisateurRepository.findByEmail("doyen@unievt.ma");
         assertTrue(found.isPresent());
         assertEquals("Alami", found.get().getNom());
-        System.out.println("✅ findByEmail works");
+        System.out.println(" findByEmail works");
     }
 
     @Test
     void testExistsByEmail() {
         assertTrue(utilisateurRepository.existsByEmail("strike@unievt.ma"));
         assertFalse(utilisateurRepository.existsByEmail("nobody@unievt.ma"));
-        System.out.println("✅ existsByEmail works");
+        System.out.println(" existsByEmail works");
     }
 
     @Test
     void testDateCreationAutoSet() {
         assertNotNull(doyen.getDateCreation());
-        System.out.println("✅ dateCreation auto-set: " + doyen.getDateCreation());
+        System.out.println(" dateCreation auto-set: " + doyen.getDateCreation());
     }
 
     @Test
@@ -150,9 +154,9 @@ class UniEventBackendApplicationTests {
         Utilisateur inactif = utilisateurRepository.save(Utilisateur.builder()
                 .nom("Test").prenom("Inactif")
                 .email("inactif@unievt.ma").motDePasse("pass")
-                .role(RoleEnum.ETUDIANT).actif(false).build());
+                .actif(false).build()); // role nullable; not relevant for this test
         assertFalse(inactif.getActif());
-        System.out.println("✅ Inactive user saved correctly");
+        System.out.println(" Inactive user saved correctly");
     }
 
     // ─────────────────────────────────────────────
@@ -164,7 +168,7 @@ class UniEventBackendApplicationTests {
         assertEquals("Génie Informatique", etudiant1.getFiliere());
         assertEquals(2, etudiant1.getAnneeEtude());
         assertEquals("AB111111", etudiant1.getCin());
-        System.out.println("✅ Etudiant fields correct");
+        System.out.println(" Etudiant fields correct");
     }
 
     @Test
@@ -172,7 +176,7 @@ class UniEventBackendApplicationTests {
         Optional<Etudiant> found = etudiantRepository.findByCin("AB111111");
         assertTrue(found.isPresent());
         assertEquals("Alaoui", found.get().getNom());
-        System.out.println("✅ findByCin works");
+        System.out.println(" findByCin works");
     }
 
     @Test
@@ -180,13 +184,13 @@ class UniEventBackendApplicationTests {
         Optional<Utilisateur> found = utilisateurRepository.findByEmail("fatima@unievt.ma");
         assertTrue(found.isPresent());
         assertInstanceOf(Etudiant.class, found.get());
-        System.out.println("✅ Etudiant is also Utilisateur — inheritance works");
+        System.out.println(" Etudiant is also Utilisateur — inheritance works");
     }
 
     @Test
     void testMultipleEtudiants() {
         assertEquals(2, etudiantRepository.findAll().size());
-        System.out.println("✅ Both etudiants saved");
+        System.out.println(" Both etudiants saved");
     }
 
     // ─────────────────────────────────────────────
@@ -197,14 +201,14 @@ class UniEventBackendApplicationTests {
     void testClubSaved() {
         assertNotNull(club.getId());
         assertEquals("Club IA", club.getNom());
-        System.out.println("✅ Club saved: " + club.getId());
+        System.out.println(" Club saved: " + club.getId());
     }
 
     @Test
     void testClubPresidentRelationship() {
         assertNotNull(club.getPresident());
         assertEquals("Hassoub", club.getPresident().getNom());
-        System.out.println("✅ Club president relationship works");
+        System.out.println(" Club president relationship works");
     }
 
     @Test
@@ -213,7 +217,7 @@ class UniEventBackendApplicationTests {
                 .categorie("Sport").actif(false).president(president).build());
         List<Club> active = clubRepository.findByActifTrue();
         assertEquals(1, active.size());
-        System.out.println("✅ findByActifTrue works, found: " + active.size());
+        System.out.println(" findByActifTrue works, found: " + active.size());
     }
 
     @Test
@@ -225,7 +229,7 @@ class UniEventBackendApplicationTests {
 
         List<Club> techClubs = clubRepository.findByCategorie("Technologie");
         assertEquals(2, techClubs.size());
-        System.out.println("✅ findByCategorie works, found: " + techClubs.size());
+        System.out.println(" findByCategorie works, found: " + techClubs.size());
     }
 
     @Test
@@ -234,7 +238,7 @@ class UniEventBackendApplicationTests {
                 .categorie("Technologie").actif(true).president(president).build());
         List<Club> all = clubRepository.findAll();
         assertEquals(2, all.size());
-        System.out.println("✅ President can manage multiple clubs");
+        System.out.println(" President can manage multiple clubs");
     }
 
     // ─────────────────────────────────────────────
@@ -245,13 +249,13 @@ class UniEventBackendApplicationTests {
     void testIntervenantSaved() {
         assertNotNull(intervenant1.getId());
         assertEquals("MIT", intervenant1.getInstitution());
-        System.out.println("✅ Intervenant saved: " + intervenant1.getId());
+        System.out.println(" Intervenant saved: " + intervenant1.getId());
     }
 
     @Test
     void testMultipleIntervenants() {
         assertEquals(2, intervenantRepository.findAll().size());
-        System.out.println("✅ Both intervenants saved");
+        System.out.println(" Both intervenants saved");
     }
 
     @Test
@@ -260,7 +264,7 @@ class UniEventBackendApplicationTests {
         intervenant1.setInstitution("Harvard");
         Intervenant updated = intervenantRepository.save(intervenant1);
         assertEquals("Harvard", updated.getInstitution());
-        System.out.println("✅ Intervenant updated successfully");
+        System.out.println(" Intervenant updated successfully");
     }
 
     @Test
@@ -268,7 +272,7 @@ class UniEventBackendApplicationTests {
         Long id = intervenant2.getId();
         intervenantRepository.deleteById(id);
         assertFalse(intervenantRepository.existsById(id));
-        System.out.println("✅ Intervenant deleted successfully");
+        System.out.println(" Intervenant deleted successfully");
     }
 
     // ─────────────────────────────────────────────
@@ -280,21 +284,21 @@ class UniEventBackendApplicationTests {
         assertNotNull(evenement.getId());
         assertEquals("Conférence IA 2025", evenement.getTitre());
         assertEquals(StatutEvenementEnum.APPROUVE, evenement.getStatut());
-        System.out.println("✅ Evenement saved: " + evenement.getId());
+        System.out.println(" Evenement saved: " + evenement.getId());
     }
 
     @Test
     void testEvenementClubRelationship() {
         assertNotNull(evenement.getClub());
         assertEquals("Club IA", evenement.getClub().getNom());
-        System.out.println("✅ Evenement club relationship works");
+        System.out.println(" Evenement club relationship works");
     }
 
     @Test
     void testEvenementOrganisateurRelationship() {
         assertNotNull(evenement.getOrganisateur());
         assertEquals("Hassoub", evenement.getOrganisateur().getNom());
-        System.out.println("✅ Evenement organisateur relationship works");
+        System.out.println(" Evenement organisateur relationship works");
     }
 
     @Test
@@ -312,28 +316,28 @@ class UniEventBackendApplicationTests {
         List<Evenement> soumis = evenementRepository.findByStatut(StatutEvenementEnum.SOUMIS);
         assertEquals(1, approuves.size());
         assertEquals(1, soumis.size());
-        System.out.println("✅ findByStatut works");
+        System.out.println(" findByStatut works");
     }
 
     @Test
     void testFindEvenementByClub() {
         List<Evenement> events = evenementRepository.findByClubId(club.getId());
         assertEquals(1, events.size());
-        System.out.println("✅ findByClubId works");
+        System.out.println(" findByClubId works");
     }
 
     @Test
     void testFindEvenementByOrganisateur() {
         List<Evenement> events = evenementRepository.findByOrganisateurId(president.getId());
         assertEquals(1, events.size());
-        System.out.println("✅ findByOrganisateurId works");
+        System.out.println(" findByOrganisateurId works");
     }
 
     @Test
     void testFindEvenementByCategorie() {
         List<Evenement> conferences = evenementRepository.findByCategorie(CategorieEnum.CONFERENCE);
         assertEquals(1, conferences.size());
-        System.out.println("✅ findByCategorie works");
+        System.out.println(" findByCategorie works");
     }
 
     @Test
@@ -348,7 +352,7 @@ class UniEventBackendApplicationTests {
                 .club(club).organisateur(responsable).build());
 
         assertEquals(2, evenementRepository.findAll().size());
-        System.out.println("✅ Multiple evenements saved");
+        System.out.println(" Multiple evenements saved");
     }
 
     // ─────────────────────────────────────────────
@@ -365,7 +369,7 @@ class UniEventBackendApplicationTests {
 
         assertNotNull(i.getId());
         assertEquals(StatutInscriptionEnum.CONFIRMEE, i.getStatut());
-        System.out.println("✅ Inscription saved: " + i.getId());
+        System.out.println(" Inscription saved: " + i.getId());
     }
 
     @Test
@@ -383,7 +387,7 @@ class UniEventBackendApplicationTests {
                 .etudiant(etudiant2).evenement(evenement).build());
 
         assertEquals(2, inscriptionRepository.findAll().size());
-        System.out.println("✅ Multiple inscriptions saved");
+        System.out.println(" Multiple inscriptions saved");
     }
 
     @Test
@@ -402,7 +406,7 @@ class UniEventBackendApplicationTests {
 
         List<Inscription> found = inscriptionRepository.findByEvenementId(evenement.getId());
         assertEquals(2, found.size());
-        System.out.println("✅ findByEvenementId works");
+        System.out.println(" findByEvenementId works");
     }
 
     @Test
@@ -430,7 +434,7 @@ class UniEventBackendApplicationTests {
 
         List<Inscription> found = inscriptionRepository.findByEtudiantId(etudiant1.getId());
         assertEquals(2, found.size());
-        System.out.println("✅ findByEtudiantId works — etudiant inscribed in 2 events");
+        System.out.println(" findByEtudiantId works — etudiant inscribed in 2 events");
     }
 
     @Test
@@ -450,7 +454,7 @@ class UniEventBackendApplicationTests {
         List<Inscription> confirmes = inscriptionRepository
                 .findByEvenementIdAndStatut(evenement.getId(), StatutInscriptionEnum.CONFIRMEE);
         assertEquals(1, confirmes.size());
-        System.out.println("✅ findByEvenementIdAndStatut works");
+        System.out.println(" findByEvenementIdAndStatut works");
     }
 
     @Test
@@ -464,7 +468,7 @@ class UniEventBackendApplicationTests {
         i.setPresent(true);
         Inscription updated = inscriptionRepository.save(i);
         assertTrue(updated.getPresent());
-        System.out.println("✅ Inscription presence updated successfully");
+        System.out.println(" Inscription presence updated successfully");
     }
 
     // ─────────────────────────────────────────────
@@ -479,7 +483,7 @@ class UniEventBackendApplicationTests {
 
         assertNotNull(ei.getId());
         assertEquals(evenement.getId(), ei.getId().getEvenementId());
-        System.out.println("✅ EvenementIntervenant saved with composite PK");
+        System.out.println(" EvenementIntervenant saved with composite PK");
     }
 
     @Test
@@ -495,7 +499,7 @@ class UniEventBackendApplicationTests {
         List<EvenementIntervenant> found = evenementIntervenantRepository
                 .findByEvenementId(evenement.getId());
         assertEquals(2, found.size());
-        System.out.println("✅ Multiple intervenants linked to same evenement");
+        System.out.println(" Multiple intervenants linked to same evenement");
     }
 
     @Test
@@ -520,7 +524,7 @@ class UniEventBackendApplicationTests {
         List<EvenementIntervenant> found = evenementIntervenantRepository
                 .findByIntervenantId(intervenant1.getId());
         assertEquals(2, found.size());
-        System.out.println("✅ findByIntervenantId works — intervenant in 2 events");
+        System.out.println(" findByIntervenantId works — intervenant in 2 events");
     }
 
     @Test
@@ -530,6 +534,6 @@ class UniEventBackendApplicationTests {
 
         evenementIntervenantRepository.deleteById(id);
         assertFalse(evenementIntervenantRepository.existsById(id));
-        System.out.println("✅ EvenementIntervenant deleted by composite PK");
+        System.out.println(" EvenementIntervenant deleted by composite PK");
     }
 }
